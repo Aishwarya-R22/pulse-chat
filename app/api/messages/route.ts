@@ -1,0 +1,4 @@
+import { NextResponse } from 'next/server';
+import { getChatGPTUser } from '../../chatgpt-auth';
+export async function GET(request:Request){const user=await getChatGPTUser();if(!user)return NextResponse.json({error:'Unauthorized'},{status:401});const url=new URL(request.url);const cursor=url.searchParams.get('cursor');return NextResponse.json({items:[],nextCursor:cursor?null:'older-page-token'});}
+export async function POST(request:Request){const user=await getChatGPTUser();if(!user)return NextResponse.json({error:'Unauthorized'},{status:401});const body=await request.json() as {conversationId?:string;body?:string;clientId?:string};if(!body.conversationId||!body.body?.trim())return NextResponse.json({error:'Invalid message'},{status:400});return NextResponse.json({id:crypto.randomUUID(),authorId:user.userId,conversationId:body.conversationId,body:body.body.trim(),clientId:body.clientId,status:'sent',createdAt:new Date().toISOString()},{status:201});}
